@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speurtocht</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #000; color: #fff; }
+        
+        .no-signal {
+            width: 100vw; height: 100vh; background: #000; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; cursor: pointer;
+        }
+        .no-signal::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px);
+            animation: static 0.1s infinite;
+        }
+        @keyframes static { 0% { opacity: 0.1; } 50% { opacity: 0.05; } 100% { opacity: 0.1; } }
+        @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.7; } }
+        
+        .no-signal-text { font-size: 32px; color: #333; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 3px; font-weight: bold; }
+        .no-signal-subtitle { font-size: 16px; color: #222; opacity: 0.8; animation: pulse 2s infinite; }
+        
+        .screen { display: none; width: 100vw; height: 100vh; background: #000; overflow-y: auto; }
+        .screen.show { display: block; }
+        
+        .glitch-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0, 255, 0, 0.03) 2px, rgba(0, 255, 0, 0.03) 4px);
+            pointer-events: none; animation: flicker 0.15s infinite linear;
+        }
+        @keyframes flicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
+        
+        .progress { background: #333; height: 6px; border-radius: 3px; margin: 20px; overflow: hidden; }
+        .progress-fill { background: linear-gradient(90deg, #00ff00, #00cc88); height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+    </style>
+</head>
+<body>
+    <!-- NO SIGNAL -->
+    <div id="nosignal" class="no-signal" onclick="start()">
+        <div class="no-signal-text">NO INPUT</div>
+        <div class="no-signal-subtitle">Signal not detected</div>
+    </div>
+
+    <!-- INTRO -->
+    <div id="screen1" class="screen">
+        <div style="padding: 50px 20px; text-align: center;">
+            <video controls autoplay style="width: 100%; max-width: 800px; margin-bottom: 30px; border-radius: 8px;">
+                <source src="https://drive.google.com/uc?export=download&id=INTRO_VIDEO_ID" type="video/mp4">
+            </video>
+            <div style="background: rgba(0,0,0,0.8); padding: 30px; border: 2px solid #333; border-radius: 10px; display: inline-block;">
+                <div style="color: #00ff00; font-size: 18px; margin-bottom: 15px;">VOER TOEGANGSCODE IN:</div>
+                <input type="password" id="code1" maxlength="4" placeholder="****" style="background: #222; border: 2px solid #444; color: #fff; padding: 12px 20px; font-size: 24px; text-align: center; border-radius: 5px; width: 200px; letter-spacing: 8px; margin-bottom: 20px;">
+                <br>
+                <button onclick="check(1, '1234')" style="background: linear-gradient(135deg, #ff0040, #ff6b40); border: none; color: white; padding: 12px 30px; font-size: 16px; border-radius: 5px; cursor: pointer;">ONTGRENDEL</button>
+                <div id="msg1" style="color: #ff4444; margin-top: 10px; font-size: 14px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOCATIE 2 -->
+    <div id="screen2" class="screen" style="background: linear-gradient(45deg, #0a0a0a 0%, #1a0a1a 50%, #0a1a0a 100%);">
+        <div class="glitch-bg"></div>
+        <div class="progress"><div class="progress-fill" style="width: 25%;"></div></div>
+        <div style="padding: 20px; text-align: center; position: relative; z-index: 2;">
+            <video controls autoplay style="width: 100%; max-width: 800px; margin-bottom: 30px; border-radius: 8px;">
+                <source src="https://drive.google.com/uc?export=download&id=KANTOOR_VIDEO_ID" type="video/mp4">
+            </video>
+            <div style="background: rgba(0,0,0,0.8); padding: 30px; border: 2px solid #333; border-radius: 10px; display: inline-block;">
+                <div style="color: #00ff00; font-size: 18px; margin-bottom: 15px;">VOER TOEGANGSCODE IN:</div>
+                <input type="password" id="code2" maxlength="4" placeholder="****" style="background: #222; border: 2px solid #444; color: #fff; padding: 12px 20px; font-size: 24px; text-align: center; border-radius: 5px; width: 200px; letter-spacing: 8px; margin-bottom: 20px;">
+                <br>
+                <button onclick="check(2, '7777')" style="background: linear-gradient(135deg, #ff0040, #ff6b40); border: none; color: white; padding: 12px 30px; font-size: 16px; border-radius: 5px; cursor: pointer;">ONTGRENDEL</button>
+                <div id="msg2" style="color: #ff4444; margin-top: 10px; font-size: 14px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOCATIE 3 -->
+    <div id="screen3" class="screen" style="background: linear-gradient(45deg, #0a0a0a 0%, #1a0a1a 50%, #0a1a0a 100%);">
+        <div class="glitch-bg"></div>
+        <div class="progress"><div class="progress-fill" style="width: 50%;"></div></div>
+        <div style="padding: 20px; text-align: center; position: relative; z-index: 2;">
+            <video controls autoplay style="width: 100%; max-width: 800px; margin-bottom: 30px; border-radius: 8px;">
+                <source src="https://drive.google.com/uc?export=download&id=CASINO_VIDEO_ID" type="video/mp4">
+            </video>
+            <div style="background: rgba(0,0,0,0.8); padding: 30px; border: 2px solid #333; border-radius: 10px; display: inline-block;">
+                <div style="color: #00ff00; font-size: 18px; margin-bottom: 15px;">VOER TOEGANGSCODE IN:</div>
+                <input type="password" id="code3" maxlength="4" placeholder="****" style="background: #222; border: 2px solid #444; color: #fff; padding: 12px 20px; font-size: 24px; text-align: center; border-radius: 5px; width: 200px; letter-spacing: 8px; margin-bottom: 20px;">
+                <br>
+                <button onclick="check(3, '2580')" style="background: linear-gradient(135deg, #ff0040, #ff6b40); border: none; color: white; padding: 12px 30px; font-size: 16px; border-radius: 5px; cursor: pointer;">ONTGRENDEL</button>
+                <div id="msg3" style="color: #ff4444; margin-top: 10px; font-size: 14px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOCATIE 4 -->
+    <div id="screen4" class="screen" style="background: linear-gradient(45deg, #0a0a0a 0%, #1a0a1a 50%, #0a1a0a 100%);">
+        <div class="glitch-bg"></div>
+        <div class="progress"><div class="progress-fill" style="width: 75%;"></div></div>
+        <div style="padding: 20px; text-align: center; position: relative; z-index: 2;">
+            <video controls autoplay style="width: 100%; max-width: 800px; margin-bottom: 30px; border-radius: 8px;">
+                <source src="https://drive.google.com/uc?export=download&id=RESTAURANT_VIDEO_ID" type="video/mp4">
+            </video>
+            <div style="background: rgba(0,0,0,0.8); padding: 30px; border: 2px solid #333; border-radius: 10px; display: inline-block;">
+                <div style="color: #00ff00; font-size: 18px; margin-bottom: 15px;">VOER TOEGANGSCODE IN:</div>
+                <input type="password" id="code4" maxlength="4" placeholder="****" style="background: #222; border: 2px solid #444; color: #fff; padding: 12px 20px; font-size: 24px; text-align: center; border-radius: 5px; width: 200px; letter-spacing: 8px; margin-bottom: 20px;">
+                <br>
+                <button onclick="check(4, '1969')" style="background: linear-gradient(135deg, #ff0040, #ff6b40); border: none; color: white; padding: 12px 30px; font-size: 16px; border-radius: 5px; cursor: pointer;">ONTGRENDEL</button>
+                <div id="msg4" style="color: #ff4444; margin-top: 10px; font-size: 14px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOCATIE 5 -->
+    <div id="screen5" class="screen" style="background: linear-gradient(45deg, #0a0a0a 0%, #1a0a1a 50%, #0a1a0a 100%);">
+        <div class="glitch-bg"></div>
+        <div class="progress"><div class="progress-fill" style="width: 100%;"></div></div>
+        <div style="padding: 20px; text-align: center; position: relative; z-index: 2;">
+            <video controls autoplay style="width: 100%; max-width: 800px; margin-bottom: 30px; border-radius: 8px;">
+                <source src="https://drive.google.com/uc?export=download&id=VONDELKERK_VIDEO_ID" type="video/mp4">
+            </video>
+            <div style="background: rgba(0,0,0,0.8); padding: 30px; border: 2px solid #333; border-radius: 10px; display: inline-block;">
+                <div style="color: #00ff00; font-size: 18px; margin-bottom: 15px;">VOER TOEGANGSCODE IN:</div>
+                <input type="password" id="code5" maxlength="4" placeholder="****" style="background: #222; border: 2px solid #444; color: #fff; padding: 12px 20px; font-size: 24px; text-align: center; border-radius: 5px; width: 200px; letter-spacing: 8px; margin-bottom: 20px;">
+                <br>
+                <button onclick="check(5, '0420')" style="background: linear-gradient(135deg, #ff0040, #ff6b40); border: none; color: white; padding: 12px 30px; font-size: 16px; border-radius: 5px; cursor: pointer;">ONTGRENDEL</button>
+                <div id="msg5" style="color: #ff4444; margin-top: 10px; font-size: 14px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FINALE -->
+    <div id="screen6" class="screen" style="background: linear-gradient(45deg, #0a0a0a 0%, #1a0a1a 50%, #0a1a0a 100%);">
+        <div class="glitch-bg"></div>
+        <div style="padding: 20px; text-align: center; position: relative; z-index: 2;">
+            <video controls autoplay style="width: 100%; max-width: 800px; margin-bottom: 30px; border-radius: 8px;">
+                <source src="https://drive.google.com/uc?export=download&id=WALLEN_VIDEO_ID" type="video/mp4">
+            </video>
+            <div style="background: rgba(0,0,0,0.8); padding: 30px; border: 2px solid #333; border-radius: 10px; display: inline-block;">
+                <div style="color: #00ff00; font-size: 18px; margin-bottom: 15px;">FINALE TOEGANGSCODE:</div>
+                <input type="password" id="code6" maxlength="4" placeholder="****" style="background: #222; border: 2px solid #444; color: #fff; padding: 12px 20px; font-size: 24px; text-align: center; border-radius: 5px; width: 200px; letter-spacing: 8px; margin-bottom: 20px;">
+                <br>
+                <button onclick="check(6, '9999')" style="background: linear-gradient(135deg, #ff0040, #ff6b40); border: none; color: white; padding: 12px 30px; font-size: 16px; border-radius: 5px; cursor: pointer;">VOLTOOIEN</button>
+                <div id="msg6" style="color: #ff4444; margin-top: 10px; font-size: 14px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EINDE -->
+    <div id="screen7" class="screen" style="background: linear-gradient(45deg, #0a0a0a 0%, #1a0a1a 50%, #0a1a0a 100%);">
+        <div class="glitch-bg"></div>
+        <div style="padding: 50px 20px; text-align: center; position: relative; z-index: 2;">
+            <h1 style="color: #00ff00; font-size: 48px; margin-bottom: 20px;">🎉 MISSIE GESLAAGD 🎉</h1>
+            <p style="font-size: 20px; margin-bottom: 30px;">Alle opdrachten voltooid!</p>
+            <button onclick="location.reload()" style="background: linear-gradient(135deg, #00ff00, #00cc88); border: none; color: #000; padding: 15px 40px; font-size: 18px; font-weight: bold; border-radius: 25px; cursor: pointer;">RESTART</button>
+        </div>
+    </div>
+
+    <script>
+        let current = 0;
+
+        function start() {
+            document.getElementById('nosignal').style.display = 'none';
+            current = 1;
+            document.getElementById('screen1').classList.add('show');
+        }
+
+        function next() {
+            document.getElementById('screen' + current).classList.remove('show');
+            current++;
+            document.getElementById('screen' + current).classList.add('show');
+        }
+
+        function check(num, code) {
+            const input = document.getElementById('code' + num);
+            const msg = document.getElementById('msg' + num);
+            
+            if (input.value === code) {
+                msg.innerHTML = '✓ Code correct!';
+                msg.style.color = '#00ff00';
+                input.disabled = true;
+                setTimeout(() => next(), 1500);
+            } else {
+                msg.innerHTML = '✗ Onjuiste code';
+                input.value = '';
+            }
+        }
+
+        // Enter key support
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const input = document.activeElement;
+                if (input.type === 'password') {
+                    const button = input.parentNode.querySelector('button');
+                    button.click();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
