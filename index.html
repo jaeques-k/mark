@@ -6,7 +6,7 @@
     <title>Speurtocht</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #000; color: #fff; }
+        body { font-family: Arial, sans-serif; background: #000; color: #fff; overflow: hidden; }
         
         .no-signal {
             width: 100vw; height: 100vh; background: #000; display: flex; flex-direction: column; 
@@ -23,18 +23,167 @@
         .no-signal-text { font-size: 32px; color: #333; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 3px; font-weight: bold; }
         .no-signal-subtitle { font-size: 16px; color: #222; opacity: 0.8; animation: pulse 2s infinite; }
         
-        .screen { display: none; width: 100vw; height: 100vh; background: #000; overflow-y: auto; }
+        .screen { display: none; width: 100vw; height: 100vh; background: #000; position: relative; }
         .screen.show { display: block; }
+        
+        .fullscreen-iframe {
+            width: 100vw;
+            height: 100vh;
+            border: none;
+            background: #000;
+        }
+        
+        .pincode-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        .pincode-popup.show {
+            display: flex;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .pincode-box {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 40px;
+            border-radius: 15px;
+            border: 2px solid #333;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+        }
+        
+        .pincode-title {
+            color: #00ff00;
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+        
+        .pincode-input {
+            background: #222;
+            border: 2px solid #444;
+            color: #fff;
+            padding: 15px 25px;
+            font-size: 28px;
+            text-align: center;
+            border-radius: 8px;
+            width: 250px;
+            letter-spacing: 10px;
+            margin-bottom: 25px;
+        }
+        
+        .pincode-input:focus {
+            outline: none;
+            border-color: #00ff00;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+        }
+        
+        .unlock-btn {
+            background: linear-gradient(135deg, #ff0040, #ff6b40);
+            border: none;
+            color: white;
+            padding: 15px 35px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+        
+        .unlock-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 0, 64, 0.4);
+        }
+        
+        .error-message {
+            color: #ff4444;
+            margin-top: 15px;
+            font-size: 16px;
+        }
+        
+        .progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #333;
+            height: 6px;
+            z-index: 999;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #00ff00, #00cc88);
+            height: 100%;
+            transition: width 0.5s ease;
+        }
         
         .glitch-bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0, 255, 0, 0.03) 2px, rgba(0, 255, 0, 0.03) 4px);
-            pointer-events: none; animation: flicker 0.15s infinite linear;
+            pointer-events: none; animation: flicker 0.15s infinite linear; z-index: 10;
         }
         @keyframes flicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
         
-        .progress { background: #333; height: 6px; border-radius: 3px; margin: 20px; overflow: hidden; }
-        .progress-fill { background: linear-gradient(90deg, #00ff00, #00cc88); height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+        .end-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(45deg, #0a0a0a 0%, #1a0a1a 50%, #0a1a0a 100%);
+        }
+        
+        .end-title {
+            color: #00ff00;
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
+            animation: glow 2s infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(0, 255, 0, 0.5); }
+            to { text-shadow: 0 0 30px rgba(0, 255, 0, 1); }
+        }
+        
+        .restart-btn {
+            background: linear-gradient(135deg, #00ff00, #00cc88);
+            border: none;
+            color: #000;
+            padding: 20px 50px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: all 0.3s;
+        }
+        
+        .restart-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px rgba(0, 255, 0, 0.6);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
     </style>
 </head>
 <body>
@@ -46,190 +195,192 @@
 
     <!-- VIDEO 1: CoOUcG-sGks -->
     <div id="screen1" class="screen">
-        <div style="padding: 50px 20px; text-align: center;">
-            <iframe width="100%" height="450" 
-                    src="https://www.youtube.com/embed/CoOUcG-sGks?autoplay=1&mute=1" 
-                    frameborder="0" allowfullscreen
-                    style="max-width: 800px; border-radius: 8px; margin-bottom: 30px;">
-            </iframe>
-            <div style="background: rgba(0,0,0,0.8); padding: 30px; border: 2px solid #333; border-radius: 10px; display: inline-block;">
-                <div style="color: #00ff00; font-size: 18px; margin-bottom: 15px;">VOER TOEGANGSCODE IN:</div>
-                <input type="password" id="code1" maxlength="4" placeholder="****" style="background: #222; border: 2px solid #444; color: #fff; padding: 12px 20px; font-size: 24px; text-align: center; border-radius: 5px; width: 200px; letter-spacing: 8px; margin-bottom: 20px;">
-                <br>
-                <button onclick="check(1, '1234')" style="background: linear-gradient(135deg, #ff0040, #ff6b40); border: none; color: white; padding: 12px 30px; font-size: 16px; border-radius: 5px; cursor: pointer;">ONTGRENDEL</button>
-                <div id="msg1" style="color: #ff4444; margin-top: 10px; font-size: 14px;"></div>
-            </div>
-        </div>
+        <div class="progress"><div class="progress-fill" style="width: 14%;"></div></div>
+        <iframe class="fullscreen-iframe" 
+                src="https://www.youtube.com/embed/CoOUcG-sGks?autoplay=1&rel=0&modestbranding=1&controls=0&showinfo=0&iv_load_policy=3" 
+                allow="autoplay; fullscreen">
+        </iframe>
     </div>
 
     <!-- VIDEO 2: eIzJSHciXsM -->
-    <div id="screen2" class="screen" style="background: linear-gradient(45deg, #0a0a0a 0%, #1a0a1a 50%, #0a1a0a 100%);">
+    <div id="screen2" class="screen">
         <div class="glitch-bg"></div>
-        <div class="progress"><div class="progress-fill" style="width: 25%;"></div></div>
-        <div style="padding: 20px; text-align: center; position: relative; z-index: 2;">
-            <iframe width="100%" height="450" 
-                    src="https://www.youtube.com/embed/eIzJSHciXsM?autoplay=1&mute=1" 
-                    frameborder="0" allowfullscreen
-                    style="max-width: 800px; border-radius: 8px; margin-bottom: 30px;">
-            </iframe>
-            <div style="background: rgba(0,0,0,0.8); padding: 30px; border: 2px solid #333; border-radius: 10px; display: inline-block;">
-                <div style="color: #00ff00; font-size: 18px; margin-bottom: 15px;">VOER TOEGANGSCODE IN:</div>
-                <input type="password" id="code2" maxlength="4" placeholder="****" style="background: #222; border: 2px solid #444; color: #fff; padding: 12px 20px; font-size: 24px; text-align: center; border-radius: 5px; width: 200px; letter-spacing: 8px; margin-bottom: 20px;">
-                <br>
-                <button onclick="check(2, '7777')" style="background: linear-gradient(135deg, #ff0040, #ff6b40); border: none; color: white; padding: 12px 30px; font-size: 16px; border-radius: 5px; cursor: pointer;">ONTGRENDEL</button>
-                <div id="msg2" style="color: #ff4444; margin-top: 10px; font-size: 14px;"></div>
-            </div>
-        </div>
+        <div class="progress"><div class="progress-fill" style="width: 28%;"></div></div>
+        <iframe class="fullscreen-iframe" 
+                src="https://www.youtube.com/embed/eIzJSHciXsM?autoplay=1&rel=0&modestbranding=1&controls=0&showinfo=0&iv_load_policy=3" 
+                allow="autoplay; fullscreen">
+        </iframe>
     </div>
 
     <!-- VIDEO 3: y6wr1sTAL-Q -->
-    <div id="screen3" class="screen" style="background: linear-gradient(45deg, #0a0a0a 0%, #1a0a1a 50%, #0a1a0a 100%);">
+    <div id="screen3" class="screen">
         <div class="glitch-bg"></div>
-        <div class="progress"><div class="progress-fill" style="width: 40%;"></div></div>
-        <div style="padding: 20px; text-align: center; position: relative; z-index: 2;">
-            <iframe width="100%" height="450" 
-                    src="https://www.youtube.com/embed/y6wr1sTAL-Q?autoplay=1&mute=1" 
-                    frameborder="0" allowfullscreen
-                    style="max-width: 800px; border-radius: 8px; margin-bottom: 30px;">
-            </iframe>
-            <div style="background: rgba(0,0,0,0.8); padding: 30px; border: 2px solid #333; border-radius: 10px; display: inline-block;">
-                <div style="color: #00ff00; font-size: 18px; margin-bottom: 15px;">VOER TOEGANGSCODE IN:</div>
-                <input type="password" id="code3" maxlength="4" placeholder="****" style="background: #222; border: 2px solid #444; color: #fff; padding: 12px 20px; font-size: 24px; text-align: center; border-radius: 5px; width: 200px; letter-spacing: 8px; margin-bottom: 20px;">
-                <br>
-                <button onclick="check(3, '2580')" style="background: linear-gradient(135deg, #ff0040, #ff6b40); border: none; color: white; padding: 12px 30px; font-size: 16px; border-radius: 5px; cursor: pointer;">ONTGRENDEL</button>
-                <div id="msg3" style="color: #ff4444; margin-top: 10px; font-size: 14px;"></div>
-            </div>
-        </div>
+        <div class="progress"><div class="progress-fill" style="width: 42%;"></div></div>
+        <iframe class="fullscreen-iframe" 
+                src="https://www.youtube.com/embed/y6wr1sTAL-Q?autoplay=1&rel=0&modestbranding=1&controls=0&showinfo=0&iv_load_policy=3" 
+                allow="autoplay; fullscreen">
+        </iframe>
     </div>
 
     <!-- VIDEO 4: 1VTJv6yAefc -->
-    <div id="screen4" class="screen" style="background: linear-gradient(45deg, #0a0a0a 0%, #1a0a1a 50%, #0a1a0a 100%);">
+    <div id="screen4" class="screen">
         <div class="glitch-bg"></div>
-        <div class="progress"><div class="progress-fill" style="width: 55%;"></div></div>
-        <div style="padding: 20px; text-align: center; position: relative; z-index: 2;">
-            <iframe width="100%" height="450" 
-                    src="https://www.youtube.com/embed/1VTJv6yAefc?autoplay=1&mute=1" 
-                    frameborder="0" allowfullscreen
-                    style="max-width: 800px; border-radius: 8px; margin-bottom: 30px;">
-            </iframe>
-            <div style="background: rgba(0,0,0,0.8); padding: 30px; border: 2px solid #333; border-radius: 10px; display: inline-block;">
-                <div style="color: #00ff00; font-size: 18px; margin-bottom: 15px;">VOER TOEGANGSCODE IN:</div>
-                <input type="password" id="code4" maxlength="4" placeholder="****" style="background: #222; border: 2px solid #444; color: #fff; padding: 12px 20px; font-size: 24px; text-align: center; border-radius: 5px; width: 200px; letter-spacing: 8px; margin-bottom: 20px;">
-                <br>
-                <button onclick="check(4, '1969')" style="background: linear-gradient(135deg, #ff0040, #ff6b40); border: none; color: white; padding: 12px 30px; font-size: 16px; border-radius: 5px; cursor: pointer;">ONTGRENDEL</button>
-                <div id="msg4" style="color: #ff4444; margin-top: 10px; font-size: 14px;"></div>
-            </div>
-        </div>
+        <div class="progress"><div class="progress-fill" style="width: 56%;"></div></div>
+        <iframe class="fullscreen-iframe" 
+                src="https://www.youtube.com/embed/1VTJv6yAefc?autoplay=1&rel=0&modestbranding=1&controls=0&showinfo=0&iv_load_policy=3" 
+                allow="autoplay; fullscreen">
+        </iframe>
     </div>
 
     <!-- VIDEO 5: 17nmugoSsBs -->
-    <div id="screen5" class="screen" style="background: linear-gradient(45deg, #0a0a0a 0%, #1a0a1a 50%, #0a1a0a 100%);">
+    <div id="screen5" class="screen">
         <div class="glitch-bg"></div>
         <div class="progress"><div class="progress-fill" style="width: 70%;"></div></div>
-        <div style="padding: 20px; text-align: center; position: relative; z-index: 2;">
-            <iframe width="100%" height="450" 
-                    src="https://www.youtube.com/embed/17nmugoSsBs?autoplay=1&mute=1" 
-                    frameborder="0" allowfullscreen
-                    style="max-width: 800px; border-radius: 8px; margin-bottom: 30px;">
-            </iframe>
-            <div style="background: rgba(0,0,0,0.8); padding: 30px; border: 2px solid #333; border-radius: 10px; display: inline-block;">
-                <div style="color: #00ff00; font-size: 18px; margin-bottom: 15px;">VOER TOEGANGSCODE IN:</div>
-                <input type="password" id="code5" maxlength="4" placeholder="****" style="background: #222; border: 2px solid #444; color: #fff; padding: 12px 20px; font-size: 24px; text-align: center; border-radius: 5px; width: 200px; letter-spacing: 8px; margin-bottom: 20px;">
-                <br>
-                <button onclick="check(5, '0420')" style="background: linear-gradient(135deg, #ff0040, #ff6b40); border: none; color: white; padding: 12px 30px; font-size: 16px; border-radius: 5px; cursor: pointer;">ONTGRENDEL</button>
-                <div id="msg5" style="color: #ff4444; margin-top: 10px; font-size: 14px;"></div>
-            </div>
-        </div>
+        <iframe class="fullscreen-iframe" 
+                src="https://www.youtube.com/embed/17nmugoSsBs?autoplay=1&rel=0&modestbranding=1&controls=0&showinfo=0&iv_load_policy=3" 
+                allow="autoplay; fullscreen">
+        </iframe>
     </div>
 
     <!-- VIDEO 6: sAvlN0qTHak -->
-    <div id="screen6" class="screen" style="background: linear-gradient(45deg, #0a0a0a 0%, #1a0a1a 50%, #0a1a0a 100%);">
+    <div id="screen6" class="screen">
         <div class="glitch-bg"></div>
-        <div class="progress"><div class="progress-fill" style="width: 85%;"></div></div>
-        <div style="padding: 20px; text-align: center; position: relative; z-index: 2;">
-            <iframe width="100%" height="450" 
-                    src="https://www.youtube.com/embed/sAvlN0qTHak?autoplay=1&mute=1" 
-                    frameborder="0" allowfullscreen
-                    style="max-width: 800px; border-radius: 8px; margin-bottom: 30px;">
-            </iframe>
-            <div style="background: rgba(0,0,0,0.8); padding: 30px; border: 2px solid #333; border-radius: 10px; display: inline-block;">
-                <div style="color: #00ff00; font-size: 18px; margin-bottom: 15px;">VOER TOEGANGSCODE IN:</div>
-                <input type="password" id="code6" maxlength="4" placeholder="****" style="background: #222; border: 2px solid #444; color: #fff; padding: 12px 20px; font-size: 24px; text-align: center; border-radius: 5px; width: 200px; letter-spacing: 8px; margin-bottom: 20px;">
-                <br>
-                <button onclick="check(6, '4560')" style="background: linear-gradient(135deg, #ff0040, #ff6b40); border: none; color: white; padding: 12px 30px; font-size: 16px; border-radius: 5px; cursor: pointer;">ONTGRENDEL</button>
-                <div id="msg6" style="color: #ff4444; margin-top: 10px; font-size: 14px;"></div>
-            </div>
-        </div>
+        <div class="progress"><div class="progress-fill" style="width: 84%;"></div></div>
+        <iframe class="fullscreen-iframe" 
+                src="https://www.youtube.com/embed/sAvlN0qTHak?autoplay=1&rel=0&modestbranding=1&controls=0&showinfo=0&iv_load_policy=3" 
+                allow="autoplay; fullscreen">
+        </iframe>
     </div>
 
     <!-- VIDEO 7: n78WypblfSg -->
-    <div id="screen7" class="screen" style="background: linear-gradient(45deg, #0a0a0a 0%, #1a0a1a 50%, #0a1a0a 100%);">
+    <div id="screen7" class="screen">
         <div class="glitch-bg"></div>
-        <div class="progress"><div class="progress-fill" style="width: 100%;"></div></div>
-        <div style="padding: 20px; text-align: center; position: relative; z-index: 2;">
-            <iframe width="100%" height="450" 
-                    src="https://www.youtube.com/embed/n78WypblfSg?autoplay=1&mute=1" 
-                    frameborder="0" allowfullscreen
-                    style="max-width: 800px; border-radius: 8px; margin-bottom: 30px;">
-            </iframe>
-            <div style="background: rgba(0,0,0,0.8); padding: 30px; border: 2px solid #333; border-radius: 10px; display: inline-block;">
-                <div style="color: #00ff00; font-size: 18px; margin-bottom: 15px;">FINALE TOEGANGSCODE:</div>
-                <input type="password" id="code7" maxlength="4" placeholder="****" style="background: #222; border: 2px solid #444; color: #fff; padding: 12px 20px; font-size: 24px; text-align: center; border-radius: 5px; width: 200px; letter-spacing: 8px; margin-bottom: 20px;">
-                <br>
-                <button onclick="check(7, '9999')" style="background: linear-gradient(135deg, #ff0040, #ff6b40); border: none; color: white; padding: 12px 30px; font-size: 16px; border-radius: 5px; cursor: pointer;">VOLTOOIEN</button>
-                <div id="msg7" style="color: #ff4444; margin-top: 10px; font-size: 14px;"></div>
-            </div>
-        </div>
+        <div class="progress"><div class="progress-fill" style="width: 98%;"></div></div>
+        <iframe class="fullscreen-iframe" 
+                src="https://www.youtube.com/embed/n78WypblfSg?autoplay=1&rel=0&modestbranding=1&controls=0&showinfo=0&iv_load_policy=3" 
+                allow="autoplay; fullscreen">
+        </iframe>
     </div>
 
     <!-- EINDE -->
-    <div id="screen8" class="screen" style="background: linear-gradient(45deg, #0a0a0a 0%, #1a0a1a 50%, #0a1a0a 100%);">
+    <div id="screen8" class="screen">
+        <div class="progress"><div class="progress-fill" style="width: 100%;"></div></div>
         <div class="glitch-bg"></div>
-        <div style="padding: 50px 20px; text-align: center; position: relative; z-index: 2;">
-            <h1 style="color: #00ff00; font-size: 48px; margin-bottom: 20px;">🎉 MISSIE GESLAAGD 🎉</h1>
-            <p style="font-size: 20px; margin-bottom: 30px;">Alle opdrachten voltooid!</p>
-            <button onclick="location.reload()" style="background: linear-gradient(135deg, #00ff00, #00cc88); border: none; color: #000; padding: 15px 40px; font-size: 18px; font-weight: bold; border-radius: 25px; cursor: pointer;">RESTART</button>
+        <div class="end-screen">
+            <h1 class="end-title">MISSIE GESLAAGD</h1>
+            <p style="font-size: 24px; margin-bottom: 10px;">Alle opdrachten voltooid!</p>
+            <button class="restart-btn" onclick="location.reload()">RESTART SYSTEM</button>
+        </div>
+    </div>
+
+    <!-- PINCODE POPUP -->
+    <div id="pincode-popup" class="pincode-popup">
+        <div class="pincode-box">
+            <div class="pincode-title" id="pincode-title">VOER TOEGANGSCODE IN:</div>
+            <input type="password" class="pincode-input" id="pincode-input" maxlength="4" placeholder="****">
+            <br>
+            <button class="unlock-btn" onclick="checkCode()">ONTGRENDEL</button>
+            <div class="error-message" id="error-msg"></div>
         </div>
     </div>
 
     <script>
         let current = 0;
+        const codes = ['', '1234', '7777', '2580', '1969', '0420', '4560', '9999'];
+        let currentVideoNumber = 1;
+        let videoTimer;
 
         function start() {
             document.getElementById('nosignal').style.display = 'none';
             current = 1;
             document.getElementById('screen1').classList.add('show');
+            startVideoTimer(1);
         }
 
-        function next() {
+        function startVideoTimer(videoNum) {
+            // Video lengtes in milliseconden
+            const videoLengths = [0, 81000, 30000, 55000, 45000, 44000, 61000, 84000];
+            // Video 1: 1:21 = 81 sec
+            // Video 2: 0:30 = 30 sec  
+            // Video 3: 0:55 = 55 sec
+            // Video 4: 0:45 = 45 sec
+            // Video 5: 0:44 = 44 sec
+            // Video 6: 1:01 = 61 sec
+            // Video 7: 1:24 = 84 sec
+            
+            videoTimer = setTimeout(() => {
+                showPincode(videoNum);
+            }, videoLengths[videoNum]);
+        }
+
+        function showPincode(videoNum) {
+            currentVideoNumber = videoNum;
+            const popup = document.getElementById('pincode-popup');
+            const input = document.getElementById('pincode-input');
+            const title = document.getElementById('pincode-title');
+            
+            if (videoNum === 7) {
+                title.textContent = 'FINALE TOEGANGSCODE:';
+            } else {
+                title.textContent = 'VOER TOEGANGSCODE IN:';
+            }
+            
+            input.value = '';
+            document.getElementById('error-msg').textContent = '';
+            popup.classList.add('show');
+            input.focus();
+        }
+
+        function checkCode() {
+            const input = document.getElementById('pincode-input');
+            const errorMsg = document.getElementById('error-msg');
+            const correctCode = codes[currentVideoNumber];
+            
+            if (input.value === correctCode) {
+                errorMsg.textContent = '✓ Code correct!';
+                errorMsg.style.color = '#00ff00';
+                
+                setTimeout(() => {
+                    document.getElementById('pincode-popup').classList.remove('show');
+                    nextScreen();
+                }, 1000);
+            } else {
+                errorMsg.textContent = '✗ Onjuiste code. Probeer opnieuw.';
+                errorMsg.style.color = '#ff4444';
+                input.value = '';
+                
+                input.style.animation = 'shake 0.5s ease-in-out';
+                setTimeout(() => {
+                    input.style.animation = '';
+                }, 500);
+            }
+        }
+
+        function nextScreen() {
+            clearTimeout(videoTimer);
             document.getElementById('screen' + current).classList.remove('show');
             current++;
-            document.getElementById('screen' + current).classList.add('show');
-        }
-
-        function check(num, code) {
-            const input = document.getElementById('code' + num);
-            const msg = document.getElementById('msg' + num);
-            
-            if (input.value === code) {
-                msg.innerHTML = '✓ Code correct!';
-                msg.style.color = '#00ff00';
-                input.disabled = true;
-                setTimeout(() => next(), 1500);
-            } else {
-                msg.innerHTML = '✗ Onjuiste code';
-                input.value = '';
+            if (current <= 8) {
+                document.getElementById('screen' + current).classList.add('show');
+                if (current <= 7) {
+                    startVideoTimer(current);
+                }
             }
         }
 
         // Enter key support
         document.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const input = document.activeElement;
-                if (input.type === 'password') {
-                    const button = input.parentNode.querySelector('button');
-                    button.click();
-                }
+            if (e.key === 'Enter' && document.getElementById('pincode-popup').classList.contains('show')) {
+                checkCode();
+            }
+        });
+
+        // Skip to pincode with spacebar (for testing)
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Space' && current <= 7) {
+                e.preventDefault();
+                clearTimeout(videoTimer);
+                showPincode(current);
             }
         });
     </script>
