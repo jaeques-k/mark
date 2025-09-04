@@ -500,18 +500,39 @@
                 enterFullscreen();
             }
             
-            // Hide browser UI on iOS
-            if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+            // Aggressive iOS UI hiding
+            if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                // Multiple attempts to hide browser UI
+                const hideUI = () => {
+                    window.scrollTo(0, 1);
+                    document.body.style.height = (window.innerHeight + 60) + 'px';
+                    setTimeout(() => {
+                        window.scrollTo(0, 0);
+                        document.body.style.height = '100vh';
+                        document.body.style.height = '100dvh';
+                    }, 50);
+                };
+                
+                hideUI();
+                setTimeout(hideUI, 300);
+                setTimeout(hideUI, 1000);
+                
+                // Handle orientation changes
                 window.addEventListener('orientationchange', function() {
                     setTimeout(() => {
-                        window.scrollTo(0, 1);
-                        setTimeout(() => window.scrollTo(0, 0), 100);
+                        hideUI();
+                        // Force iframe to recalculate size
+                        const activeScreen = document.querySelector('.screen.show');
+                        if (activeScreen) {
+                            const iframe = activeScreen.querySelector('iframe');
+                            if (iframe) {
+                                iframe.style.height = '100vh';
+                                iframe.style.height = '100dvh';
+                                iframe.style.width = '100vw';
+                            }
+                        }
                     }, 500);
                 });
-                
-                // Immediate scroll to hide UI
-                window.scrollTo(0, 1);
-                setTimeout(() => window.scrollTo(0, 0), 100);
             }
             
             document.getElementById('nosignal').style.display = 'none';
