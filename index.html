@@ -289,8 +289,43 @@
         const codes = ['', '1234', '7777', '2580', '1969', '0420', '4560', '9999'];
         let currentVideoNumber = 1;
         let videoTimer;
+        let isFullscreen = false;
+
+        function toggleFullscreen() {
+            if (!isFullscreen) {
+                // Ga naar fullscreen
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen();
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    document.documentElement.webkitRequestFullscreen();
+                } else if (document.documentElement.msRequestFullscreen) {
+                    document.documentElement.msRequestFullscreen();
+                }
+                isFullscreen = true;
+            } else {
+                // Verlaat fullscreen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                isFullscreen = false;
+            }
+        }
+
+        // Detect fullscreen changes
+        document.addEventListener('fullscreenchange', function() {
+            isFullscreen = !!document.fullscreenElement;
+        });
 
         function start() {
+            // Automatisch fullscreen activeren bij start
+            if (!isFullscreen) {
+                toggleFullscreen();
+            }
+            
             document.getElementById('nosignal').style.display = 'none';
             current = 1;
             document.getElementById('screen1').classList.add('show');
